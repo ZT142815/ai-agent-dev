@@ -1,50 +1,44 @@
-import { jsonSchema } from "ai";
+import type { ToolDefinition } from './registry.js';
 
-export const weatherTool = {
-  description: "查询指定城市的天气",
-  inputSchema: jsonSchema({
-    type: "object",
-    properties: {
-      city: {
-        type: "string",
-        description: "要查询的城市名称",
-      },
-    },
-    required: ["city"],
+export const weatherTool: ToolDefinition = {
+  name: 'get_weather',
+  description: '查询指定城市的天气信息',
+  parameters: {
+    type: 'object',
+    properties: { city: { type: 'string', description: '城市名称' } },
+    required: ['city'],
     additionalProperties: false,
-  }),
+  },
+  isConcurrencySafe: true,
+  isReadOnly: true,
   execute: async ({ city }: { city: string }) => {
-    const mockWeather: Record<string, string> = {
-      北京: "晴天,气温20°C",
-      上海: "多云,气温18°C",
-      广州: "小雨,气温22°C",
-      深圳: "晴天,气温25°C",
+    const data: Record<string, string> = {
+      '北京': '晴，15-25°C，东南风 2 级',
+      '上海': '多云，18-22°C，西南风 3 级',
+      '深圳': '阵雨，22-28°C，南风 2 级',
+      '广州': '多云转晴，20-28°C，东风 3 级',
+      '杭州': '晴，14-24°C，北风 2 级',
+      '成都': '阴，16-22°C，微风',
     };
-
-    return mockWeather[city] || "暂无数据";
+    return data[city] || `${city}：暂无数据`;
   },
 };
 
-export const calculatorTool = {
-  description: "计算数学表达式的结果",
-  inputSchema: jsonSchema({
-    type: "object",
-    properties: {
-      expression: {
-        type: "string",
-        description: "数学表达式,如 2 + 2",
-      },
-    },
-    required: ["expression"],
+export const calculatorTool: ToolDefinition = {
+  name: 'calculator',
+  description: '计算数学表达式的结果',
+  parameters: {
+    type: 'object',
+    properties: { expression: { type: 'string', description: '数学表达式，如 "2 + 3 * 4"' } },
+    required: ['expression'],
     additionalProperties: false,
-  }),
+  },
+  isConcurrencySafe: true,
+  isReadOnly: true,
   execute: async ({ expression }: { expression: string }) => {
     try {
-      // 生产环境不要用 eval，这里纯粹为了演示
       const result = new Function(`return ${expression}`)();
       return `${expression} = ${result}`;
-    } catch {
-      return `无法计算: ${expression}`;
-    }
+    } catch { return `无法计算: ${expression}`; }
   },
 };
